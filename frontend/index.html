@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rayeva AI — Sustainable Commerce Platform</title>
+    <meta name="description" content="AI-powered sustainable product categorization and B2B proposal generation">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8faf9;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a3a2a 0%, #2d7a4f 100%);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            margin-top: 0.4rem;
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            background: white;
+            border-bottom: 2px solid #e8ece9;
+        }
+        .tab {
+            padding: 1rem 2.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .tab:hover { color: #2d7a4f; }
+        .tab.active {
+            color: #2d7a4f;
+            border-bottom-color: #2d7a4f;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            color: #1a3a2a;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #dde2df;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+            background: #fafcfb;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2d7a4f;
+            background: white;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn {
+            background: linear-gradient(135deg, #2d7a4f, #3a9963);
+            color: white;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(45,122,79,0.3);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #2d7a4f;
+        }
+        .spinner.show { display: block; }
+        .spinner::after {
+            content: '';
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e8ece9;
+            border-top-color: #2d7a4f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error {
+            display: none;
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            border: 1px solid #fecaca;
+        }
+        .error.show { display: block; }
+        .result { display: none; margin-top: 1.5rem; }
+        .result.show { display: block; }
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #2d7a4f;
+        }
+        .result-card h3 {
+            font-size: 1rem;
+            color: #1a3a2a;
+            margin-bottom: 1rem;
+        }
+        .field-group {
+            margin-bottom: 1rem;
+        }
+        .field-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
+            margin-bottom: 0.3rem;
+        }
+        .field-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.3rem;
+        }
+        .badge {
+            background: #e8f5ee;
+            color: #2d7a4f;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .badge.tag {
+            background: #f0f4f8;
+            color: #475569;
+        }
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e8ece9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.4rem;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d7a4f, #3a9963);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 400;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: #f5f8f6;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #dde2df;
+            transition: all 0.15s;
+        }
+        .checkbox-group label:hover {
+            border-color: #2d7a4f;
+            background: #e8f5ee;
+        }
+        .checkbox-group input:checked + span {
+            color: #2d7a4f;
+            font-weight: 500;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5rem 0 1rem;
+            font-size: 0.9rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            background: #f5f8f6;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #555;
+            border-bottom: 2px solid #e8ece9;
+        }
+        td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .budget-bar {
+            display: flex;
+            height: 28px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 0.5rem 0 1rem;
+        }
+        .budget-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            min-width: 30px;
+            transition: width 0.4s ease;
+        }
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 0.5rem 0;
+        }
+        .impact-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f5f8f6;
+            border-radius: 8px;
+        }
+        .impact-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d7a4f;
+        }
+        .impact-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.2rem;
+        }
+        .proposal-statement {
+            background: linear-gradient(135deg, #e8f5ee, #f0faf5);
+            padding: 1.2rem;
+            border-radius: 8px;
+            font-style: italic;
+            color: #1a3a2a;
+            line-height: 1.6;
+            border: 1px solid #c6e6d3;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 0 1rem; }
+            .card { padding: 1.5rem; }
+            .tab { padding: 0.8rem 1.5rem; font-size: 0.85rem; }
+            .impact-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌿 Rayeva AI</h1>
+        <p>Sustainable Commerce Platform</p>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('category')">Category Generator</div>
+        <div class="tab" onclick="switchTab('proposal')">B2B Proposal Generator</div>
+    </div>
+
+    <div class="container">
+        <!-- CATEGORY PANEL -->
+        <div id="category-panel" class="panel active">
+            <div class="card">
+                <h2>AI Product Categorizer</h2>
+                <label for="cat-name">Product Name</label>
+                <input type="text" id="cat-name" placeholder="e.g. Bamboo Toothbrush">
+
+                <label for="cat-desc">Product Description</label>
+                <textarea id="cat-desc" placeholder="e.g. Biodegradable bamboo toothbrush with charcoal bristles"></textarea>
+
+                <button class="btn" id="cat-btn" onclick="generateCategory()">Generate Categories</button>
+            </div>
+
+            <div id="cat-spinner" class="spinner"><br>Analyzing product...</div>
+            <div id="cat-error" class="error"></div>
+
+            <div id="cat-result" class="result">
+                <div class="result-card">
+                    <h3>📦 Categorization Result</h3>
+                    <div class="field-group">
+                        <div class="field-label">Primary Category</div>
+                        <div class="field-value" id="res-category"></div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Sub-Category</div>
+                        <div class="field-value" id="res-subcategory"></div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Sustainability Filters</div>
+                        <div class="badges" id="res-filters"></div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">SEO Tags</div>
+                        <div class="badges" id="res-tags"></div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Confidence Score</div>
+                        <div class="field-value" id="res-confidence-text"></div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="res-confidence-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROPOSAL PANEL -->
+        <div id="proposal-panel" class="panel">
+            <div class="card">
+                <h2>B2B Proposal Generator</h2>
+                <label for="prop-company">Company Name</label>
+                <input type="text" id="prop-company" placeholder="e.g. GreenOffice Solutions">
+
+                <label for="prop-industry">Industry</label>
+                <input type="text" id="prop-industry" placeholder="e.g. Corporate Offices">
+
+                <label for="prop-budget">Budget ($)</label>
+                <input type="number" id="prop-budget" placeholder="e.g. 50000">
+
+                <label for="prop-requirements">Requirements</label>
+                <textarea id="prop-requirements" placeholder="e.g. Eco-friendly office supplies for 200 employees"></textarea>
+
+                <label>Sustainability Preferences</label>
+                <div class="checkbox-group" id="pref-checkboxes">
+                    <label><input type="checkbox" value="plastic-free"><span>Plastic-Free</span></label>
+                    <label><input type="checkbox" value="compostable"><span>Compostable</span></label>
+                    <label><input type="checkbox" value="vegan"><span>Vegan</span></label>
+                    <label><input type="checkbox" value="recycled"><span>Recycled</span></label>
+                    <label><input type="checkbox" value="biodegradable"><span>Biodegradable</span></label>
+                    <label><input type="checkbox" value="organic"><span>Organic</span></label>
+                    <label><input type="checkbox" value="zero-waste"><span>Zero-Waste</span></label>
+                    <label><input type="checkbox" value="fair-trade"><span>Fair-Trade</span></label>
+                    <label><input type="checkbox" value="carbon-neutral"><span>Carbon-Neutral</span></label>
+                    <label><input type="checkbox" value="locally-sourced"><span>Locally-Sourced</span></label>
+                </div>
+
+                <button class="btn" id="prop-btn" onclick="generateProposal()">Generate Proposal</button>
+            </div>
+
+            <div id="prop-spinner" class="spinner"><br>Generating proposal...</div>
+            <div id="prop-error" class="error"></div>
+
+            <div id="prop-result" class="result">
+                <div class="result-card">
+                    <h3>📋 Proposal Result</h3>
+
+                    <div class="field-group">
+                        <div class="field-label">Recommended Products</div>
+                        <table>
+                            <thead><tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+                            <tbody id="res-products"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">Budget Allocation</div>
+                        <div class="budget-bar" id="res-budget-bar"></div>
+                        <div id="res-budget-legend" style="font-size:0.8rem;color:#666;"></div>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">Total: <strong id="res-total"></strong> | Utilization: <strong id="res-util"></strong></div>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">Impact Summary</div>
+                        <div class="impact-grid" id="res-impact"></div>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="field-label">Proposal Statement</div>
+                        <div class="proposal-statement" id="res-statement"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8000';
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(tab + '-panel').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function clearState(prefix) {
+            document.getElementById(prefix + '-error').classList.remove('show');
+            document.getElementById(prefix + '-result').classList.remove('show');
+            document.getElementById(prefix + '-spinner').classList.add('show');
+        }
+
+        async function generateCategory() {
+            const name = document.getElementById('cat-name').value.trim();
+            const desc = document.getElementById('cat-desc').value.trim();
+            if (!name || !desc) { showError('cat-error', 'Please fill in both fields.'); return; }
+
+            clearState('cat');
+            document.getElementById('cat-btn').disabled = true;
+
+            try {
+                const res = await fetch(API + '/api/v1/category/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_name: name, product_description: desc })
+                });
+                if (!res.ok) throw new Error((await res.json()).detail || 'API error');
+                const data = await res.json();
+
+                document.getElementById('res-category').textContent = data.primary_category;
+                document.getElementById('res-subcategory').textContent = data.sub_category;
+
+                document.getElementById('res-filters').innerHTML =
+                    data.sustainability_filters.map(f => `<span class="badge">${f}</span>`).join('');
+                document.getElementById('res-tags').innerHTML =
+                    data.seo_tags.map(t => `<span class="badge tag">${t}</span>`).join('');
+
+                const pct = Math.round(data.confidence_score * 100);
+                document.getElementById('res-confidence-text').textContent = pct + '%';
+                document.getElementById('res-confidence-bar').style.width = pct + '%';
+
+                document.getElementById('cat-result').classList.add('show');
+            } catch (e) {
+                showError('cat-error', 'Error: ' + e.message);
+            } finally {
+                document.getElementById('cat-spinner').classList.remove('show');
+                document.getElementById('cat-btn').disabled = false;
+            }
+        }
+
+        async function generateProposal() {
+            const company = document.getElementById('prop-company').value.trim();
+            const industry = document.getElementById('prop-industry').value.trim();
+            const budget = parseFloat(document.getElementById('prop-budget').value);
+            const reqs = document.getElementById('prop-requirements').value.trim();
+            const prefs = [...document.querySelectorAll('#pref-checkboxes input:checked')].map(c => c.value);
+
+            if (!company || !industry || !budget || !reqs) {
+                showError('prop-error', 'Please fill in all required fields.');
+                return;
+            }
+
+            clearState('prop');
+            document.getElementById('prop-btn').disabled = true;
+
+            try {
+                const res = await fetch(API + '/api/v1/proposal/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        company_name: company, industry: industry,
+                        budget: budget, requirements: reqs, preferences: prefs
+                    })
+                });
+                if (!res.ok) throw new Error((await res.json()).detail || 'API error');
+                const data = await res.json();
+
+                // products table
+                const tbody = document.getElementById('res-products');
+                tbody.innerHTML = (data.recommended_products || []).map(p =>
+                    `<tr><td>${p.name}</td><td>${p.quantity}</td><td>$${p.unit_price?.toLocaleString()}</td><td>$${p.total_price?.toLocaleString()}</td></tr>`
+                ).join('');
+
+                // budget bar
+                const colors = ['#2d7a4f','#3a9963','#48b876','#5cc98a','#7dd8a4','#a0e6be','#c2f0d4'];
+                const alloc = data.budget_allocation || {};
+                const bar = document.getElementById('res-budget-bar');
+                const legend = document.getElementById('res-budget-legend');
+                bar.innerHTML = '';
+                let legendParts = [];
+                let i = 0;
+                for (const [cat, info] of Object.entries(alloc)) {
+                    const pct = info.percentage || 0;
+                    const color = colors[i % colors.length];
+                    bar.innerHTML += `<div class="budget-segment" style="width:${pct}%;background:${color}">${pct}%</div>`;
+                    legendParts.push(`<span style="color:${color}">●</span> ${cat} ($${info.amount?.toLocaleString()})`);
+                    i++;
+                }
+                legend.innerHTML = legendParts.join(' &nbsp; ');
+
+                // totals
+                document.getElementById('res-total').textContent = '$' + (data.total_estimated_cost || 0).toLocaleString();
+                document.getElementById('res-util').textContent = (data.budget_utilization_percent || 0) + '%';
+
+                // impact
+                const impact = data.impact_summary || {};
+                document.getElementById('res-impact').innerHTML = `
+                    <div class="impact-item">
+                        <div class="impact-value">${impact.plastic_saved_kg || 0} kg</div>
+                        <div class="impact-label">Plastic Saved</div>
+                    </div>
+                    <div class="impact-item">
+                        <div class="impact-value">${impact.carbon_avoided_kg || 0} kg</div>
+                        <div class="impact-label">Carbon Avoided</div>
+                    </div>
+                    <div class="impact-item">
+                        <div class="impact-value">${impact.sustainability_score || 0}/100</div>
+                        <div class="impact-label">Sustainability Score</div>
+                    </div>
+                `;
+
+                document.getElementById('res-statement').textContent = data.proposal_statement || '';
+                document.getElementById('prop-result').classList.add('show');
+            } catch (e) {
+                showError('prop-error', 'Error: ' + e.message);
+            } finally {
+                document.getElementById('prop-spinner').classList.remove('show');
+                document.getElementById('prop-btn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
